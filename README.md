@@ -49,6 +49,23 @@ python manage.py runserver
 - With your admin/superuser, you can log into the news app and navigate to your Admin Dashboard from the Navbar.
 - Here you can approve user applications and select a Publisher for them in the case of an Editor or Journalist.
 
+## Run with Docker
+
+- Ensure that docker is running
+- Build the docker image
+
+```bash
+docker build -t yournews .
+```
+
+- Run the container
+
+```bash
+docker run -d -p 8000:8000 yournews
+```
+
+- Open up your browser at http://localhost:8000/
+
 ## Emails
 
 Emails are currently set up as file based for testing. They are sent following these actions:
