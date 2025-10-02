@@ -66,6 +66,14 @@ docker run -d -p 8000:8000 yournews
 
 - Open up your browser at http://localhost:8000/
 
+Note: For this project, the ALLOWED_HOSTS setting in settings.py is configured as:
+
+```python
+ALLOWED_HOSTS = ["*"]
+```
+
+This allows the application to run in any environment (including Docker Playground) without needing to change hostnames.
+
 ## Emails
 
 Emails are currently set up as file based for testing. They are sent following these actions:
