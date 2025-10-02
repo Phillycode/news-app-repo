@@ -1,0 +1,329 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>news.emails &mdash; YourNews 00.00.01 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=d7bb8d4d"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            YourNews
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">yournews</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">YourNews</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">news.emails</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for news.emails</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Email building utilities for the YourNews application.</span>
+
+<span class="sd">This module provides centralized email construction for various</span>
+<span class="sd">application events including authentication, notifications, and</span>
+<span class="sd">role management.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.core.mail</span><span class="w"> </span><span class="kn">import</span> <span class="n">EmailMessage</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.conf</span><span class="w"> </span><span class="kn">import</span> <span class="n">settings</span>
+
+
+<div class="viewcode-block" id="EmailBuilder">
+<a class="viewcode-back" href="../../news.html#news.emails.EmailBuilder">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">EmailBuilder</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Utility class for building emails.</span>
+
+<span class="sd">    Provides static methods to construct EmailMessage objects for</span>
+<span class="sd">    various events where user notification is important.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="EmailBuilder.build_pw_reset_email">
+<a class="viewcode-back" href="../../news.html#news.emails.EmailBuilder.build_pw_reset_email">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">build_pw_reset_email</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">reset_url</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build password reset email with secure reset link.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            user: User requesting password reset</span>
+<span class="sd">            reset_url (str): Secure token-based reset URL</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            EmailMessage: Configured email ready to send</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">subject</span> <span class="o">=</span> <span class="s2">&quot;Password Reset&quot;</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Hi </span><span class="si">{</span><span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="si">}</span><span class="s2">,</span><span class="se">\n</span><span class="s2">Here is a link to reset your &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;password: </span><span class="si">{</span><span class="n">reset_url</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">EmailMessage</span><span class="p">(</span>
+            <span class="n">subject</span><span class="p">,</span> <span class="n">body</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">DEFAULT_FROM_EMAIL</span><span class="p">,</span> <span class="p">[</span><span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">]</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="EmailBuilder.build_role_approved_email">
+<a class="viewcode-back" href="../../news.html#news.emails.EmailBuilder.build_role_approved_email">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">build_role_approved_email</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">role</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build role application approval notification email.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            user: User whose application was approved</span>
+<span class="sd">            role (str): The approved role name</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            EmailMessage: Configured approval email</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">subject</span> <span class="o">=</span> <span class="s2">&quot;Your role application was approved&quot;</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Hi </span><span class="si">{</span><span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="si">}</span><span class="s2">,</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Congratulations! Your application for the role &#39;</span><span class="si">{</span><span class="n">role</span><span class="si">}</span><span class="s2">&#39; &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;has been approved.</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;You can now log in and start using your new permissions.&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">EmailMessage</span><span class="p">(</span>
+            <span class="n">subject</span><span class="p">,</span> <span class="n">body</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">DEFAULT_FROM_EMAIL</span><span class="p">,</span> <span class="p">[</span><span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">]</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="EmailBuilder.build_role_rejected_email">
+<a class="viewcode-back" href="../../news.html#news.emails.EmailBuilder.build_role_rejected_email">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">build_role_rejected_email</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">role</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build role application rejection notification email.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            user: User whose application was rejected</span>
+<span class="sd">            role (str): The rejected role name</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            EmailMessage: Configured rejection email</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">subject</span> <span class="o">=</span> <span class="s2">&quot;Your role application was rejected&quot;</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Hi </span><span class="si">{</span><span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="si">}</span><span class="s2">,</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;We&#39;re sorry to inform you that your application for &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;the role &#39;</span><span class="si">{</span><span class="n">role</span><span class="si">}</span><span class="s2">&#39; has been rejected.</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;Feel free to apply again in the future.&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">EmailMessage</span><span class="p">(</span>
+            <span class="n">subject</span><span class="p">,</span> <span class="n">body</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">DEFAULT_FROM_EMAIL</span><span class="p">,</span> <span class="p">[</span><span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">]</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="EmailBuilder.build_article_status_email">
+<a class="viewcode-back" href="../../news.html#news.emails.EmailBuilder.build_article_status_email">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">build_article_status_email</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">article</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build article status change notification email.</span>
+
+<span class="sd">        Notifies journalist when their article is approved or rejected.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            user: Journalist who wrote the article</span>
+<span class="sd">            article: Article with updated status</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            EmailMessage: Configured status notification email</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">status_display</span> <span class="o">=</span> <span class="n">article</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span>
+        <span class="n">subject</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Your Article &#39;</span><span class="si">{</span><span class="n">article</span><span class="o">.</span><span class="n">title</span><span class="si">}</span><span class="s2">&#39; has been </span><span class="si">{</span><span class="n">status_display</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Hi </span><span class="si">{</span><span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="si">}</span><span class="s2">,</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Your article titled &#39;</span><span class="si">{</span><span class="n">article</span><span class="o">.</span><span class="n">title</span><span class="si">}</span><span class="s2">&#39; has been &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">article</span><span class="o">.</span><span class="n">status</span><span class="si">}</span><span class="s2"> by the editor.</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;Thank you for contributing to YourNews!&quot;</span>
+        <span class="p">)</span>
+        <span class="n">email</span> <span class="o">=</span> <span class="n">EmailMessage</span><span class="p">(</span>
+            <span class="n">subject</span><span class="p">,</span> <span class="n">body</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">DEFAULT_FROM_EMAIL</span><span class="p">,</span> <span class="p">[</span><span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">email</span></div>
+
+
+<div class="viewcode-block" id="EmailBuilder.build_new_article_notification_email">
+<a class="viewcode-back" href="../../news.html#news.emails.EmailBuilder.build_new_article_notification_email">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">build_new_article_notification_email</span><span class="p">(</span><span class="n">subscriber_user</span><span class="p">,</span> <span class="n">article</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build new article notification for subscribers.</span>
+
+<span class="sd">        Sent to readers subscribed to the article&#39;s</span>
+<span class="sd">        journalist or publisher.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            subscriber_user: Reader who is subscribed</span>
+<span class="sd">            article: Newly approved article</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            EmailMessage: Configured subscriber notification email</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">subject</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;New Article: </span><span class="si">{</span><span class="n">article</span><span class="o">.</span><span class="n">title</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">author_name</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">article</span><span class="o">.</span><span class="n">journalist</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">get_full_name</span><span class="p">()</span>
+            <span class="ow">or</span> <span class="n">article</span><span class="o">.</span><span class="n">journalist</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">username</span>
+        <span class="p">)</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Hi </span><span class="si">{</span><span class="n">subscriber_user</span><span class="o">.</span><span class="n">username</span><span class="si">}</span><span class="s2">,</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;A new article has been published by </span><span class="si">{</span><span class="n">author_name</span><span class="si">}</span><span class="s2">!</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Title: </span><span class="si">{</span><span class="n">article</span><span class="o">.</span><span class="n">title</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Publisher: </span><span class="si">{</span><span class="n">article</span><span class="o">.</span><span class="n">publisher</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Read the full article at YourNews.</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;Best regards,</span><span class="se">\n</span><span class="s2">The YourNews Team&quot;</span>
+        <span class="p">)</span>
+        <span class="n">email</span> <span class="o">=</span> <span class="n">EmailMessage</span><span class="p">(</span>
+            <span class="n">subject</span><span class="p">,</span> <span class="n">body</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">DEFAULT_FROM_EMAIL</span><span class="p">,</span> <span class="p">[</span><span class="n">subscriber_user</span><span class="o">.</span><span class="n">email</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">email</span></div>
+
+
+<div class="viewcode-block" id="EmailBuilder.build_new_newsletter_notification_email">
+<a class="viewcode-back" href="../../news.html#news.emails.EmailBuilder.build_new_newsletter_notification_email">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">build_new_newsletter_notification_email</span><span class="p">(</span><span class="n">subscriber_user</span><span class="p">,</span> <span class="n">newsletter</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build new newsletter notification for subscribers.</span>
+
+<span class="sd">        Sent to readers subscribed to the newsletter&#39;s journalist or</span>
+<span class="sd">        publisher. Includes content preview.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            subscriber_user: Reader who is subscribed</span>
+<span class="sd">            newsletter: Newly published newsletter</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            EmailMessage: Configured newsletter notification email</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">subject</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;New Newsletter: </span><span class="si">{</span><span class="n">newsletter</span><span class="o">.</span><span class="n">title</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">author_name</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">newsletter</span><span class="o">.</span><span class="n">journalist</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">get_full_name</span><span class="p">()</span>
+            <span class="ow">or</span> <span class="n">newsletter</span><span class="o">.</span><span class="n">journalist</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">username</span>
+        <span class="p">)</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Hi </span><span class="si">{</span><span class="n">subscriber_user</span><span class="o">.</span><span class="n">username</span><span class="si">}</span><span class="s2">,</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;A new newsletter has been published by </span><span class="si">{</span><span class="n">author_name</span><span class="si">}</span><span class="s2">!</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Title: </span><span class="si">{</span><span class="n">newsletter</span><span class="o">.</span><span class="n">title</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Publisher: </span><span class="si">{</span><span class="n">newsletter</span><span class="o">.</span><span class="n">publisher</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Content Preview:</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">newsletter</span><span class="o">.</span><span class="n">content</span><span class="p">[:</span><span class="mi">200</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;...&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="n">newsletter</span><span class="o">.</span><span class="n">content</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">200</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Read the full newsletter at YourNews.</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;Best regards,</span><span class="se">\n</span><span class="s2">The YourNews Team&quot;</span>
+        <span class="p">)</span>
+        <span class="n">email</span> <span class="o">=</span> <span class="n">EmailMessage</span><span class="p">(</span>
+            <span class="n">subject</span><span class="p">,</span> <span class="n">body</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">DEFAULT_FROM_EMAIL</span><span class="p">,</span> <span class="p">[</span><span class="n">subscriber_user</span><span class="o">.</span><span class="n">email</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">email</span></div>
+
+
+<div class="viewcode-block" id="EmailBuilder.build_newsletter_created_confirmation_email">
+<a class="viewcode-back" href="../../news.html#news.emails.EmailBuilder.build_newsletter_created_confirmation_email">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">build_newsletter_created_confirmation_email</span><span class="p">(</span>
+        <span class="n">journalist_user</span><span class="p">,</span> <span class="n">newsletter</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build newsletter creation confirmation email.</span>
+
+<span class="sd">        Confirms to journalist that their newsletter was published</span>
+<span class="sd">        successfully and is now live.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            journalist_user: Journalist who created the newsletter</span>
+<span class="sd">            newsletter: The published newsletter</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            EmailMessage: Configured confirmation email</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">subject</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Newsletter Published: </span><span class="si">{</span><span class="n">newsletter</span><span class="o">.</span><span class="n">title</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Hi </span><span class="si">{</span><span class="n">journalist_user</span><span class="o">.</span><span class="n">username</span><span class="si">}</span><span class="s2">,</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Your newsletter &#39;</span><span class="si">{</span><span class="n">newsletter</span><span class="o">.</span><span class="n">title</span><span class="si">}</span><span class="s2">&#39; has been &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;successfully published!</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Your newsletter is now live and visible to all subscribers.</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;Thank you for contributing to YourNews!</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;Best regards,</span><span class="se">\n</span><span class="s2">The YourNews Team&quot;</span>
+        <span class="p">)</span>
+        <span class="n">email</span> <span class="o">=</span> <span class="n">EmailMessage</span><span class="p">(</span>
+            <span class="n">subject</span><span class="p">,</span> <span class="n">body</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">DEFAULT_FROM_EMAIL</span><span class="p">,</span> <span class="p">[</span><span class="n">journalist_user</span><span class="o">.</span><span class="n">email</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">email</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Philip Bergh.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

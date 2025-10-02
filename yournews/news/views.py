@@ -1,3 +1,10 @@
+"""Django views for the YourNews application.
+
+This module contains all view functions for handling web requests,
+including authentication, content management, role-based dashboards,
+and subscription management.
+"""
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.decorators import login_required
@@ -41,6 +48,11 @@ User = get_user_model()
 
 
 def register(request):
+    """Handle user registration.
+
+    Creates new user accounts with 'reader' role and automatic login.
+    Redirects to article list on successful registration.
+    """
     if request.method == "POST":
         form = RegisterForm(request.POST)
         if form.is_valid():
@@ -57,6 +69,11 @@ def register(request):
 
 
 def login_user(request):
+    """Handle user authentication and login.
+
+    Validates credentials and creates user session.
+    Redirects to article list on successful login.
+    """
     if request.method == "POST":
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
@@ -77,6 +94,10 @@ def login_user(request):
 
 
 def logout_user(request):
+    """Handle user logout and session cleanup.
+
+    Clears user session and redirects to login page.
+    """
     logout(request)
     messages.info(request, "You have been logged out.")
     return redirect("news:login")
@@ -84,6 +105,11 @@ def logout_user(request):
 
 @login_required
 def apply_for_role(request):
+    """Handle role change applications.
+
+    Allows readers to apply for journalist, editor, or publisher roles.
+    Shows subscription counts and prevents duplicate applications.
+    """
     if request.user.role != "reader":
         messages.warning(request, "Only readers can apply for new roles.")
         return redirect("news:article_list")
@@ -131,6 +157,11 @@ def apply_for_role(request):
 
 @login_required
 def article_list(request):
+    """Display list of all approved articles.
+
+    Shows articles in reverse chronological order.
+    Serves as the main homepage for the application.
+    """
     articles = Article.objects.filter(status="approved").order_by(
         "-created_at"
     )
@@ -138,6 +169,11 @@ def article_list(request):
 
 
 def article_detail(request, pk):
+    """Display detailed view of a single article.
+
+    Shows subscription status for readers and edit permissions.
+    Editors/journalists can see all articles regardless of status.
+    """
     if request.user.is_authenticated and request.user.role in [
         "editor",
         "journalist",
@@ -169,6 +205,11 @@ def article_detail(request, pk):
 
 
 def forgot_password(request):
+    """Handle password reset requests.
+
+    Generates secure reset tokens and sends email with reset link.
+    Validates email exists before sending reset instructions.
+    """
     if request.method == "POST":
         form = ForgotPasswordForm(request.POST)
         if form.is_valid():
@@ -199,6 +240,11 @@ def forgot_password(request):
 
 
 def reset_password(request, token):
+    """Handle password reset with secure token.
+
+    Validates token expiry and usage, then allows password update.
+    Marks token as used after successful password change.
+    """
     # Look up token in DB (hashed version)
     hashed_token = sha1(token.encode()).hexdigest()
     try:
@@ -236,6 +282,11 @@ def reset_password(request, token):
 
 @login_required
 def editor_dashboard(request):
+    """Editor dashboard with article management.
+
+    Shows articles from editor's publisher organized by status.
+    Displays counts for pending, approved, and rejected articles.
+    """
     if request.user.role != "editor":
         messages.warning(request, "You do not have access to this page.")
         return redirect("news:article_list")
@@ -268,6 +319,11 @@ def editor_dashboard(request):
 
 @login_required
 def approve_article(request, pk):
+    """Approve an article for publication.
+
+    Sends notifications, posts to Twitter, and makes article visible.
+    Only editors from the article's publisher can approve.
+    """
     article = get_object_or_404(Article, pk=pk)
     if (
         request.user.role == "editor"
@@ -291,6 +347,11 @@ def approve_article(request, pk):
 
 @login_required
 def reject_article(request, pk):
+    """Reject an article from publication.
+
+    Sends notification to journalist about rejection.
+    Only editors from the article's publisher can reject.
+    """
     article = get_object_or_404(Article, pk=pk)
     if (
         request.user.role == "editor"
@@ -310,6 +371,11 @@ def reject_article(request, pk):
 
 @login_required
 def submit_article(request):
+    """Submit new article for editor review.
+
+    Creates article with 'pending' status requiring editor approval.
+    Only journalists can submit articles.
+    """
     if request.user.role != "journalist":
         messages.warning(request, "Only journalists can submit articles.")
         return redirect("news:article_list")
@@ -334,6 +400,11 @@ def submit_article(request):
 
 @login_required
 def update_article(request, pk):
+    """Update an existing article.
+
+    Editors can edit articles from their publisher.
+    Journalists can edit only their own articles.
+    """
     article = get_object_or_404(Article, pk=pk)
 
     # Permission checks: editors can edit any article in their publisher,
@@ -371,6 +442,11 @@ def update_article(request, pk):
 
 @login_required
 def delete_article(request, pk):
+    """Delete an article with permission checks.
+
+    Editors can delete articles from their publisher.
+    Journalists can delete only their own articles.
+    """
     article = get_object_or_404(Article, pk=pk)
 
     # Permission checks: Editors can delete articles from their publisher
@@ -404,6 +480,11 @@ def delete_article(request, pk):
 
 @login_required
 def journalist_dashboard(request):
+    """Journalist dashboard with content overview.
+
+    Shows journalist's articles organized by status and all newsletters.
+    Displays article counts and newsletter statistics.
+    """
     if request.user.role != "journalist":
         messages.warning(request, "You do not have access to this page.")
         return redirect("news:article_list")
@@ -443,7 +524,11 @@ def journalist_dashboard(request):
 
 @login_required
 def subscribe_to_journalist(request, journalist_id):
-    """Subscribe a reader to a journalist."""
+    """Subscribe reader to a journalist.
+
+    Creates or reactivates subscription for content notifications.
+    Only readers can create subscriptions.
+    """
     if request.user.role != "reader":
         messages.error(request, "Only readers can subscribe to journalists.")
         return redirect("news:article_list")
@@ -481,7 +566,11 @@ def subscribe_to_journalist(request, journalist_id):
 
 @login_required
 def unsubscribe_from_journalist(request, journalist_id):
-    """Unsubscribe a reader from a journalist."""
+    """Unsubscribe reader from a journalist.
+
+    Deactivates subscription to stop content notifications.
+    Only readers can manage their subscriptions.
+    """
     if request.user.role != "reader":
         messages.error(request, "Only readers can manage subscriptions.")
         return redirect("news:article_list")
@@ -507,7 +596,11 @@ def unsubscribe_from_journalist(request, journalist_id):
 
 @login_required
 def subscribe_to_publisher(request, publisher_id):
-    """Subscribe a reader to a publisher."""
+    """Subscribe reader to a publisher.
+
+    Creates or reactivates subscription for all publisher content.
+    Only readers can create subscriptions.
+    """
     if request.user.role != "reader":
         messages.error(request, "Only readers can subscribe to publishers.")
         return redirect("news:article_list")
@@ -535,7 +628,11 @@ def subscribe_to_publisher(request, publisher_id):
 
 @login_required
 def unsubscribe_from_publisher(request, publisher_id):
-    """Unsubscribe a reader from a publisher."""
+    """Unsubscribe reader from a publisher.
+
+    Deactivates subscription to stop publisher content notifications.
+    Only readers can manage their subscriptions.
+    """
     if request.user.role != "reader":
         messages.error(request, "Only readers can manage subscriptions.")
         return redirect("news:article_list")
@@ -559,7 +656,11 @@ def unsubscribe_from_publisher(request, publisher_id):
 
 @login_required
 def my_subscriptions(request):
-    """Display user's subscriptions page."""
+    """Display reader's subscription management page.
+
+    Shows active subscriptions and recent articles from subscribed
+    journalists and publishers. Only accessible to readers.
+    """
     if request.user.role != "reader":
         messages.error(request, "Only readers can view subscriptions.")
         return redirect("news:article_list")
@@ -603,7 +704,11 @@ def my_subscriptions(request):
 
 @login_required
 def browse_journalists(request):
-    """Browse available journalists to subscribe to."""
+    """Browse journalists available for subscription.
+
+    Shows journalists with article counts and subscriber statistics.
+    Displays current subscription status. Only accessible to readers.
+    """
     if request.user.role != "reader":
         messages.error(request, "Only readers can browse journalists.")
         return redirect("news:article_list")
@@ -644,7 +749,11 @@ def browse_journalists(request):
 
 @login_required
 def browse_publishers(request):
-    """Browse available publishers to subscribe to."""
+    """Browse publishers available for subscription.
+
+    Shows publishers with article counts and subscriber statistics.
+    Displays current subscription status. Only accessible to readers.
+    """
     if request.user.role != "reader":
         messages.error(request, "Only readers can browse publishers.")
         return redirect("news:article_list")
@@ -682,7 +791,11 @@ def browse_publishers(request):
 # Newsletter Views
 @login_required
 def newsletter_list(request):
-    """Display all newsletters."""
+    """Display list of all newsletters.
+
+    Shows newsletters in reverse chronological order with journalist
+    and publisher information. No approval status filtering.
+    """
     newsletters = (
         Newsletter.objects.all()
         .select_related("journalist__user", "publisher")
@@ -694,7 +807,11 @@ def newsletter_list(request):
 
 
 def newsletter_detail(request, pk):
-    """Display a single newsletter."""
+    """Display detailed view of a single newsletter.
+
+    Shows subscription status for readers and edit permissions.
+    Determines if user can edit/delete based on role and ownership.
+    """
     newsletter = get_object_or_404(Newsletter, pk=pk)
 
     context = {"newsletter": newsletter}
@@ -739,7 +856,11 @@ def newsletter_detail(request, pk):
 
 @login_required
 def create_newsletter(request):
-    """Create a new newsletter (journalists only)."""
+    """Create new newsletter with immediate publication.
+
+    Sends confirmation and subscriber notifications immediately.
+    Only journalists can create newsletters.
+    """
     if request.user.role != "journalist":
         messages.warning(request, "Only journalists can create newsletters.")
         return redirect("news:newsletter_list")
@@ -770,8 +891,11 @@ def create_newsletter(request):
 
 @login_required
 def update_newsletter(request, pk):
-    """Update a newsletter (journalists can edit their own,
-    editors can edit newsletters from their publisher)."""
+    """Update an existing newsletter.
+
+    Journalists can edit their own newsletters.
+    Editors can edit newsletters from their publisher.
+    """
     newsletter = get_object_or_404(Newsletter, pk=pk)
 
     # Permission checks
@@ -813,9 +937,10 @@ def update_newsletter(request, pk):
 
 @login_required
 def delete_newsletter(request, pk):
-    """
-    Delete a newsletter (journalists can delete their own,
-    editors can delete newsletters from their publisher).
+    """Delete a newsletter with permission checks.
+
+    Journalists can delete their own newsletters.
+    Editors can delete newsletters from their publisher.
     """
     newsletter = get_object_or_404(Newsletter, pk=pk)
 
@@ -853,8 +978,11 @@ def delete_newsletter(request, pk):
 
 @login_required
 def publisher_dashboard(request):
-    """Publisher dashboard showing editors, journalists,
-    and subscriber stats."""
+    """Publisher dashboard with comprehensive statistics.
+
+    Shows assigned editors and journalists with content statistics.
+    Displays subscriber counts and article status breakdowns.
+    """
     if request.user.role != "publisher":
         messages.warning(request, "You do not have access to this page.")
         return redirect("news:article_list")
@@ -929,9 +1057,10 @@ def publisher_dashboard(request):
 
 @staff_member_required
 def admin_dashboard(request):
-    """
-    Admin dashboard for managing role applications.
-    Only accessible to staff members/superusers.
+    """Admin dashboard for role application management.
+
+    Shows all role applications organized by status with publisher
+    assignment options. Only accessible to staff/superusers.
     """
     # Get all role applications organized by status
     applications = RoleApplication.objects.all().order_by(
@@ -963,8 +1092,10 @@ def admin_dashboard(request):
 
 @staff_member_required
 def approve_role_application(request, pk):
-    """
-    Approve a role application and update user role.
+    """Approve role application and update user permissions.
+
+    Updates user role, creates profiles, assigns publishers,
+    deactivates subscriptions, and sends approval email.
     """
     application = get_object_or_404(RoleApplication, pk=pk)
 
@@ -1020,8 +1151,9 @@ def approve_role_application(request, pk):
 
 @staff_member_required
 def reject_role_application(request, pk):
-    """
-    Reject a role application.
+    """Reject role application and send notification.
+
+    Updates application status and sends rejection email to user.
     """
     application = get_object_or_404(RoleApplication, pk=pk)
 
