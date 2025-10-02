@@ -91,19 +91,6 @@ WSGI_APPLICATION = "yournews.wsgi.application"
 # Databases
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# My MariaDB setup
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": "django_db",
-        "USER": "django_phil",
-        "PASSWORD": "password",
-        "HOST": "localhost",
-        "PORT": "3306",
-    }
-}
-
-
 # sqlite3 setup
 DATABASES = {
     "default": {
