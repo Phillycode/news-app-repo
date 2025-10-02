@@ -34,7 +34,8 @@ SECRET_KEY = (
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# Allowing any host for use with Docker Playground
+ALLOWED_HOSTS = ["*"]
 
 MESSAGE_TAGS = {
     messages.DEBUG: "secondary",
