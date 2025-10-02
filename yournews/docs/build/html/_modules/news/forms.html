@@ -1,0 +1,314 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>news.forms &mdash; YourNews 00.00.01 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=d7bb8d4d"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            YourNews
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">yournews</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">YourNews</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">news.forms</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for news.forms</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Django forms for the YourNews application.</span>
+
+<span class="sd">This module contains all form definitions for user authentication,</span>
+<span class="sd">content creation, role management, and admin functions.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">django</span><span class="w"> </span><span class="kn">import</span> <span class="n">forms</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">RoleApplication</span><span class="p">,</span> <span class="n">Article</span><span class="p">,</span> <span class="n">Newsletter</span><span class="p">,</span> <span class="n">Publisher</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.auth.forms</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">UserCreationForm</span><span class="p">,</span>
+    <span class="n">AuthenticationForm</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.auth</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_user_model</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.auth.password_validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_password</span>
+
+<span class="n">CustomUser</span> <span class="o">=</span> <span class="n">get_user_model</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="RegisterForm">
+<a class="viewcode-back" href="../../news.html#news.admin.RegisterForm">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RegisterForm</span><span class="p">(</span><span class="n">UserCreationForm</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;User registration form.</span>
+
+<span class="sd">    Extends Django&#39;s UserCreationForm to register new users with</span>
+<span class="sd">    username, email, and password validation. All users start with</span>
+<span class="sd">    &#39;reader&#39; role.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="RegisterForm.Meta">
+<a class="viewcode-back" href="../../news.html#news.admin.RegisterForm.Meta">[docs]</a>
+    <span class="k">class</span><span class="w"> </span><span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">CustomUser</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;username&quot;</span><span class="p">,</span> <span class="s2">&quot;email&quot;</span><span class="p">,</span> <span class="s2">&quot;password1&quot;</span><span class="p">,</span> <span class="s2">&quot;password2&quot;</span><span class="p">]</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="LoginForm">
+<a class="viewcode-back" href="../../news.html#news.admin.LoginForm">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LoginForm</span><span class="p">(</span><span class="n">AuthenticationForm</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;User login form.</span>
+
+<span class="sd">    Extends Django&#39;s AuthenticationForm for user authentication with</span>
+<span class="sd">    username and password fields.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LoginForm.Meta">
+<a class="viewcode-back" href="../../news.html#news.admin.LoginForm.Meta">[docs]</a>
+    <span class="k">class</span><span class="w"> </span><span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">CustomUser</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;username&quot;</span><span class="p">,</span> <span class="s2">&quot;password&quot;</span><span class="p">]</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="RoleApplicationForm">
+<a class="viewcode-back" href="../../news.html#news.admin.RoleApplicationForm">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RoleApplicationForm</span><span class="p">(</span><span class="n">forms</span><span class="o">.</span><span class="n">ModelForm</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Form for users to apply for role changes.</span>
+
+<span class="sd">    Allows readers to apply for journalist, editor, or publisher roles.</span>
+<span class="sd">    Includes role selection and motivation text area with</span>
+<span class="sd">    placeholder text.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="RoleApplicationForm.Meta">
+<a class="viewcode-back" href="../../news.html#news.admin.RoleApplicationForm.Meta">[docs]</a>
+    <span class="k">class</span><span class="w"> </span><span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">RoleApplication</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;applied_role&quot;</span><span class="p">,</span> <span class="s2">&quot;motivation&quot;</span><span class="p">]</span>
+        <span class="n">widgets</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;motivation&quot;</span><span class="p">:</span> <span class="n">forms</span><span class="o">.</span><span class="n">Textarea</span><span class="p">(</span>
+                <span class="n">attrs</span><span class="o">=</span><span class="p">{</span>
+                    <span class="s2">&quot;rows&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+                    <span class="s2">&quot;placeholder&quot;</span><span class="p">:</span> <span class="p">(</span>
+                        <span class="s2">&quot;Explain why you should be approved for this role...&quot;</span>
+                    <span class="p">),</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+        <span class="p">}</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="RoleApplicationAdminForm">
+<a class="viewcode-back" href="../../news.html#news.admin.RoleApplicationAdminForm">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RoleApplicationAdminForm</span><span class="p">(</span><span class="n">forms</span><span class="o">.</span><span class="n">ModelForm</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Admin form for processing role applications.</span>
+
+<span class="sd">    Extended form used by admins to approve/reject role applications.</span>
+<span class="sd">    Includes publisher selection field for assigning journalists and</span>
+<span class="sd">    editors to specific publishers.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">publisher</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">ModelChoiceField</span><span class="p">(</span>
+        <span class="n">queryset</span><span class="o">=</span><span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help_text</span><span class="o">=</span><span class="s2">&quot;Select a publisher if approving a journalist or editor.&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="RoleApplicationAdminForm.Meta">
+<a class="viewcode-back" href="../../news.html#news.admin.RoleApplicationAdminForm.Meta">[docs]</a>
+    <span class="k">class</span><span class="w"> </span><span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">RoleApplication</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="s2">&quot;__all__&quot;</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ForgotPasswordForm">
+<a class="viewcode-back" href="../../news.html#news.admin.ForgotPasswordForm">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ForgotPasswordForm</span><span class="p">(</span><span class="n">forms</span><span class="o">.</span><span class="n">Form</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Form for password reset requests.</span>
+
+<span class="sd">    Simple form with email field for users to request password reset.</span>
+<span class="sd">    Validates email format and triggers reset email if user exists.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">email</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">EmailField</span><span class="p">(</span>
+        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Enter your email&quot;</span><span class="p">,</span>
+        <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">EmailInput</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;class&quot;</span><span class="p">:</span> <span class="s2">&quot;form-control&quot;</span><span class="p">}),</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ResetPasswordForm">
+<a class="viewcode-back" href="../../news.html#news.admin.ResetPasswordForm">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ResetPasswordForm</span><span class="p">(</span><span class="n">forms</span><span class="o">.</span><span class="n">Form</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Form for setting new password during reset process.</span>
+
+<span class="sd">    Validates new password strength and confirms password match.</span>
+<span class="sd">    Used in conjunction with secure reset tokens.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">new_password</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span>
+        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;New Password&quot;</span><span class="p">,</span>
+        <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">PasswordInput</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;class&quot;</span><span class="p">:</span> <span class="s2">&quot;form-control&quot;</span><span class="p">}),</span>
+        <span class="n">validators</span><span class="o">=</span><span class="p">[</span><span class="n">validate_password</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="n">confirm_password</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span>
+        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Confirm Password&quot;</span><span class="p">,</span>
+        <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">PasswordInput</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;class&quot;</span><span class="p">:</span> <span class="s2">&quot;form-control&quot;</span><span class="p">}),</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="ResetPasswordForm.clean">
+<a class="viewcode-back" href="../../news.html#news.admin.ResetPasswordForm.clean">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">clean</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate that both password fields match.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dict: Cleaned form data if validation passes.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValidationError: If passwords don&#39;t match.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cleaned_data</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">clean</span><span class="p">()</span>
+        <span class="n">password</span> <span class="o">=</span> <span class="n">cleaned_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;new_password&quot;</span><span class="p">)</span>
+        <span class="n">confirm</span> <span class="o">=</span> <span class="n">cleaned_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;confirm_password&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">password</span> <span class="ow">and</span> <span class="n">confirm</span> <span class="ow">and</span> <span class="n">password</span> <span class="o">!=</span> <span class="n">confirm</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">forms</span><span class="o">.</span><span class="n">ValidationError</span><span class="p">(</span><span class="s2">&quot;Passwords do not match.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cleaned_data</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ArticleForm">
+<a class="viewcode-back" href="../../news.html#news.admin.ArticleForm">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ArticleForm</span><span class="p">(</span><span class="n">forms</span><span class="o">.</span><span class="n">ModelForm</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Form for creating and editing articles.</span>
+
+<span class="sd">    Used by journalists to create articles that require editor approval.</span>
+<span class="sd">    Includes title and content fields with Bootstrap styling.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ArticleForm.Meta">
+<a class="viewcode-back" href="../../news.html#news.admin.ArticleForm.Meta">[docs]</a>
+    <span class="k">class</span><span class="w"> </span><span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">Article</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;title&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">]</span>
+        <span class="n">widgets</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="n">forms</span><span class="o">.</span><span class="n">TextInput</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;class&quot;</span><span class="p">:</span> <span class="s2">&quot;form-control&quot;</span><span class="p">}),</span>
+            <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">forms</span><span class="o">.</span><span class="n">Textarea</span><span class="p">(</span>
+                <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;class&quot;</span><span class="p">:</span> <span class="s2">&quot;form-control&quot;</span><span class="p">,</span> <span class="s2">&quot;rows&quot;</span><span class="p">:</span> <span class="mi">6</span><span class="p">}</span>
+            <span class="p">),</span>
+        <span class="p">}</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="NewsletterForm">
+<a class="viewcode-back" href="../../news.html#news.admin.NewsletterForm">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NewsletterForm</span><span class="p">(</span><span class="n">forms</span><span class="o">.</span><span class="n">ModelForm</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Form for creating and editing newsletters.</span>
+
+<span class="sd">    Used by journalists to create newsletters that are published</span>
+<span class="sd">    immediately without editor approval. Includes title and content</span>
+<span class="sd">    fields with larger text area for newsletter content.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="NewsletterForm.Meta">
+<a class="viewcode-back" href="../../news.html#news.admin.NewsletterForm.Meta">[docs]</a>
+    <span class="k">class</span><span class="w"> </span><span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">Newsletter</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;title&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">]</span>
+        <span class="n">widgets</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="n">forms</span><span class="o">.</span><span class="n">TextInput</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;class&quot;</span><span class="p">:</span> <span class="s2">&quot;form-control&quot;</span><span class="p">}),</span>
+            <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">forms</span><span class="o">.</span><span class="n">Textarea</span><span class="p">(</span>
+                <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;class&quot;</span><span class="p">:</span> <span class="s2">&quot;form-control&quot;</span><span class="p">,</span> <span class="s2">&quot;rows&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">}</span>
+            <span class="p">),</span>
+        <span class="p">}</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Philip Bergh.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

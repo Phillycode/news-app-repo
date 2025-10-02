@@ -1,0 +1,625 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>news.models &mdash; YourNews 00.00.01 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=d7bb8d4d"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            YourNews
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">yournews</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">YourNews</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">news.models</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for news.models</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Django models for the YourNews application.</span>
+
+<span class="sd">This module contains all the data models for the news application,</span>
+<span class="sd">including user management, role-based access control, content management,</span>
+<span class="sd">and subscription system.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.db</span><span class="w"> </span><span class="kn">import</span> <span class="n">models</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.auth.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">AbstractUser</span><span class="p">,</span> <span class="n">Group</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.conf</span><span class="w"> </span><span class="kn">import</span> <span class="n">settings</span>
+
+
+<div class="viewcode-block" id="CustomUser">
+<a class="viewcode-back" href="../../news.html#news.forms.CustomUser">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CustomUser</span><span class="p">(</span><span class="n">AbstractUser</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Custom user model with role-based permissions.</span>
+
+<span class="sd">    Extends Django&#39;s AbstractUser to include role-based access control.</span>
+<span class="sd">    Users start as readers and can apply for elevated roles (journalist,</span>
+<span class="sd">    editor, publisher) through the role application system.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        role (str): The user&#39;s role in the system. Defaults to &#39;reader&#39;.</span>
+<span class="sd">            Can be one of: &#39;reader&#39;, &#39;journalist&#39;, &#39;editor&#39;, &#39;publisher&#39;.</span>
+
+<span class="sd">    Note:</span>
+<span class="sd">        - All new users start as &#39;reader&#39; upon registration</span>
+<span class="sd">        - Role changes trigger automatic subscription cleanup</span>
+<span class="sd">        - Users are automatically assigned to appropriate Django groups</span>
+<span class="sd">        - Only readers can have active subscriptions</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">ROLE_CHOICES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s2">&quot;reader&quot;</span><span class="p">,</span> <span class="s2">&quot;Reader&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;journalist&quot;</span><span class="p">,</span> <span class="s2">&quot;Journalist&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;editor&quot;</span><span class="p">,</span> <span class="s2">&quot;Editor&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;publisher&quot;</span><span class="p">,</span> <span class="s2">&quot;Publisher&quot;</span><span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="n">role</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span>
+        <span class="n">max_length</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="n">ROLE_CHOICES</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;reader&quot;</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="CustomUser.save">
+<a class="viewcode-back" href="../../news.html#news.forms.CustomUser.save">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save the user and update group membership.</span>
+
+<span class="sd">        This method extends the default save behavior to:</span>
+<span class="sd">        1. Update Django group membership based on the user&#39;s role</span>
+<span class="sd">        2. Deactivate subscriptions if role changes from &#39;reader&#39;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            *args: Variable length argument list</span>
+<span class="sd">            **kwargs: Arbitrary keyword arguments</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Check if this is an update (not a new user) and role is changing</span>
+        <span class="n">is_role_changing</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">old_role</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pk</span><span class="p">:</span>  <span class="c1"># User already exists</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">old_user</span> <span class="o">=</span> <span class="n">CustomUser</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pk</span><span class="p">)</span>
+                <span class="n">old_role</span> <span class="o">=</span> <span class="n">old_user</span><span class="o">.</span><span class="n">role</span>
+                <span class="n">is_role_changing</span> <span class="o">=</span> <span class="n">old_role</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">role</span>
+            <span class="k">except</span> <span class="n">CustomUser</span><span class="o">.</span><span class="n">DoesNotExist</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># Update group membership</span>
+        <span class="n">group</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">Group</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_or_create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">role</span><span class="o">.</span><span class="n">capitalize</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">groups</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">groups</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">group</span><span class="p">)</span>
+
+        <span class="c1"># If role changed from reader, deactivate subscriptions</span>
+        <span class="k">if</span> <span class="n">is_role_changing</span> <span class="ow">and</span> <span class="n">old_role</span> <span class="o">==</span> <span class="s2">&quot;reader&quot;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">role</span> <span class="o">!=</span> <span class="s2">&quot;reader&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_deactivate_subscriptions</span><span class="p">()</span></div>
+
+
+    <span class="c1"># Internal helper method</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_deactivate_subscriptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deactivate all subscriptions for this user.</span>
+
+<span class="sd">        Internal helper method that deactivates all subscriptions for a user</span>
+<span class="sd">        when their role changes from &#39;reader&#39;. This is necessary because only</span>
+<span class="sd">        users with the &#39;reader&#39; role should have active subscriptions.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">JournalistSubscription</span><span class="p">,</span> <span class="n">PublisherSubscription</span>
+
+        <span class="n">JournalistSubscription</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+            <span class="n">reader</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">is_active</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">is_active</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">PublisherSubscription</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+            <span class="n">reader</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">is_active</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">is_active</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="RoleApplication">
+<a class="viewcode-back" href="../../news.html#news.forms.RoleApplication">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RoleApplication</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Model for managing user role change applications.</span>
+
+<span class="sd">    This model tracks applications for role changes and their approval</span>
+<span class="sd">    status. Users start as readers and can apply for journalist, editor,</span>
+<span class="sd">    or publisher roles. Applications must be approved by an admin before</span>
+<span class="sd">    the role is granted.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        user (ForeignKey): The user applying for a role change</span>
+<span class="sd">        applied_role (str): The role the user is applying for</span>
+<span class="sd">        motivation (str): The user&#39;s justification for the role change</span>
+<span class="sd">        status (str): Current application status</span>
+<span class="sd">            (pending, approved, rejected)</span>
+<span class="sd">        submitted_at (datetime): When the application was submitted</span>
+
+<span class="sd">    Note:</span>
+<span class="sd">        - Only admins can approve or reject applications</span>
+<span class="sd">        - Approved applications may require assigning the user to a</span>
+<span class="sd">          publisher</span>
+<span class="sd">        - Approving a role change triggers subscription deactivation</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">ROLE_CHOICES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s2">&quot;journalist&quot;</span><span class="p">,</span> <span class="s2">&quot;Journalist&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;editor&quot;</span><span class="p">,</span> <span class="s2">&quot;Editor&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;publisher&quot;</span><span class="p">,</span> <span class="s2">&quot;Publisher&quot;</span><span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="n">user</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">AUTH_USER_MODEL</span><span class="p">,</span>
+        <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">,</span>
+        <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;role_applications&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">applied_role</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="n">ROLE_CHOICES</span><span class="p">)</span>
+    <span class="n">motivation</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">()</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span>
+        <span class="n">max_length</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+        <span class="n">choices</span><span class="o">=</span><span class="p">(</span>
+            <span class="p">(</span><span class="s2">&quot;pending&quot;</span><span class="p">,</span> <span class="s2">&quot;Pending&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;approved&quot;</span><span class="p">,</span> <span class="s2">&quot;Approved&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;rejected&quot;</span><span class="p">,</span> <span class="s2">&quot;Rejected&quot;</span><span class="p">),</span>
+        <span class="p">),</span>
+        <span class="n">default</span><span class="o">=</span><span class="s2">&quot;pending&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">submitted_at</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">(</span><span class="n">auto_now_add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="si">}</span><span class="s2"> applied for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">applied_role</span><span class="si">}</span><span class="s2"> &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Publisher">
+<a class="viewcode-back" href="../../news.html#news.forms.Publisher">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Publisher</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Publisher entity representing a news organization.</span>
+
+<span class="sd">    Publishers are top-level organizational entities that employ editors</span>
+<span class="sd">    and journalists. They serve as containers for articles and newsletters,</span>
+<span class="sd">    and can be subscribed to by readers.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        user (OneToOneField): The user with publisher role associated with</span>
+<span class="sd">            this entity</span>
+<span class="sd">        name (str): The unique name of the publisher organization</span>
+<span class="sd">        description (str, optional): A detailed description of the publisher</span>
+
+<span class="sd">    Relationships:</span>
+<span class="sd">        - Has many editors (Editor model)</span>
+<span class="sd">        - Has many journalists (Journalist model)</span>
+<span class="sd">        - Has many articles (Article model)</span>
+<span class="sd">        - Has many newsletters (Newsletter model)</span>
+<span class="sd">        - Has many subscribers (PublisherSubscription model)</span>
+
+<span class="sd">    Note:</span>
+<span class="sd">        When a user&#39;s role changes to &#39;publisher&#39;, a Publisher entity is</span>
+<span class="sd">        automatically created with a default name based on the username.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">user</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">OneToOneField</span><span class="p">(</span>
+        <span class="n">CustomUser</span><span class="p">,</span>
+        <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">,</span>
+        <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;publisher_profile&quot;</span><span class="p">,</span>
+        <span class="n">limit_choices_to</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;publisher&quot;</span><span class="p">},</span>
+    <span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">255</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">description</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">(</span><span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">get_full_name</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Editor">
+<a class="viewcode-back" href="../../news.html#news.forms.Editor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Editor</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Editor profile for users with the &#39;editor&#39; role.</span>
+
+<span class="sd">    Editors are responsible for reviewing and approving/rejecting articles</span>
+<span class="sd">    submitted by journalists. They are associated with a specific publisher</span>
+<span class="sd">    and can only manage content from that publisher.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        user (OneToOneField): The user with editor role</span>
+<span class="sd">        publisher (ForeignKey): The publisher this editor works for</span>
+
+<span class="sd">    Permissions:</span>
+<span class="sd">        - Approve/reject articles from their publisher</span>
+<span class="sd">        - Edit articles from their publisher</span>
+<span class="sd">        - Delete articles from their publisher</span>
+<span class="sd">        - Edit/delete newsletters from their publisher</span>
+
+<span class="sd">    Note:</span>
+<span class="sd">        Editors are assigned to a publisher by an admin when their</span>
+<span class="sd">        role application is approved.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">user</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">OneToOneField</span><span class="p">(</span>
+        <span class="n">CustomUser</span><span class="p">,</span>
+        <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">,</span>
+        <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;editor_profile&quot;</span><span class="p">,</span>
+        <span class="n">limit_choices_to</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;editor&quot;</span><span class="p">},</span>
+    <span class="p">)</span>
+    <span class="n">publisher</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span>
+        <span class="n">Publisher</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;editors&quot;</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">get_full_name</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">username</span></div>
+
+
+
+<div class="viewcode-block" id="Journalist">
+<a class="viewcode-back" href="../../news.html#news.forms.Journalist">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Journalist</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Journalist profile for users with the &#39;journalist&#39; role.</span>
+
+<span class="sd">    Journalists create content in the form of articles (which require</span>
+<span class="sd">    editor approval) and newsletters (which are published directly). They</span>
+<span class="sd">    are associated with a specific publisher and readers can subscribe to</span>
+<span class="sd">    them.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        user (OneToOneField): The user with journalist role</span>
+<span class="sd">        publisher (ForeignKey): The publisher this journalist works for</span>
+
+<span class="sd">    Relationships:</span>
+<span class="sd">        - Has many articles (Article model)</span>
+<span class="sd">        - Has many newsletters (Newsletter model)</span>
+<span class="sd">        - Has many subscribers (JournalistSubscription model)</span>
+
+<span class="sd">    Permissions:</span>
+<span class="sd">        - Create articles and newsletters</span>
+<span class="sd">        - Edit/delete their own articles and newsletters</span>
+<span class="sd">        - View all articles and newsletters</span>
+
+<span class="sd">    Note:</span>
+<span class="sd">        Journalists are assigned to a publisher by an admin when their</span>
+<span class="sd">        role application is approved.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">user</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">OneToOneField</span><span class="p">(</span>
+        <span class="n">CustomUser</span><span class="p">,</span>
+        <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">,</span>
+        <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;journalist_profile&quot;</span><span class="p">,</span>
+        <span class="n">limit_choices_to</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;journalist&quot;</span><span class="p">},</span>
+    <span class="p">)</span>
+    <span class="n">publisher</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span>
+        <span class="n">Publisher</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;journalists&quot;</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">get_full_name</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">username</span></div>
+
+
+
+<div class="viewcode-block" id="Article">
+<a class="viewcode-back" href="../../news.html#news.forms.Article">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Article</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Article model for news content that requires editorial approval.</span>
+
+<span class="sd">    Articles are created by journalists and must be approved by an editor</span>
+<span class="sd">    before becoming visible to readers. Each article belongs to a journalist</span>
+<span class="sd">    and their associated publisher.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        title (str): The article headline</span>
+<span class="sd">        content (str): The full article text content</span>
+<span class="sd">        journalist (ForeignKey): The author of the article</span>
+<span class="sd">        publisher (ForeignKey): The publisher the article belongs to</span>
+<span class="sd">        status (str): Current article status</span>
+<span class="sd">            (pending, approved, rejected)</span>
+<span class="sd">        created_at (datetime): When the article was created</span>
+<span class="sd">        updated_at (datetime): When the article was last updated</span>
+
+<span class="sd">    Workflow:</span>
+<span class="sd">        1. Journalist creates article (status: pending)</span>
+<span class="sd">        2. Editor reviews article</span>
+<span class="sd">        3. Editor approves or rejects article (status: approved/rejected)</span>
+<span class="sd">        4. If approved, article is visible to readers and notifications</span>
+<span class="sd">           are sent</span>
+<span class="sd">        5. If approved, article is automatically posted to Twitter</span>
+<span class="sd">           (if enabled)</span>
+
+<span class="sd">    Note:</span>
+<span class="sd">        Only approved articles are visible to general readers.</span>
+<span class="sd">        Journalists and editors can see all articles regardless of</span>
+<span class="sd">        status.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">STATUS_CHOICES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s2">&quot;pending&quot;</span><span class="p">,</span> <span class="s2">&quot;Pending&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;approved&quot;</span><span class="p">,</span> <span class="s2">&quot;Approved&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;rejected&quot;</span><span class="p">,</span> <span class="s2">&quot;Rejected&quot;</span><span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="n">title</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span>
+    <span class="n">content</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">()</span>
+    <span class="n">journalist</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span>
+        <span class="n">Journalist</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;articles&quot;</span>
+    <span class="p">)</span>
+    <span class="n">publisher</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span>
+        <span class="n">Publisher</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;articles&quot;</span>
+    <span class="p">)</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span>
+        <span class="n">max_length</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="n">STATUS_CHOICES</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;pending&quot;</span>
+    <span class="p">)</span>
+    <span class="n">created_at</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">(</span><span class="n">auto_now_add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">updated_at</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">(</span><span class="n">auto_now</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">title</span></div>
+
+
+
+<div class="viewcode-block" id="Newsletter">
+<a class="viewcode-back" href="../../news.html#news.forms.Newsletter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Newsletter</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Newsletter model for direct-to-subscriber content.</span>
+
+<span class="sd">    Newsletters are created by journalists and do not require editor</span>
+<span class="sd">    approval. They are immediately available and notifications are sent</span>
+<span class="sd">    to subscribers upon creation.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        title (str): The newsletter title</span>
+<span class="sd">        content (str): The full newsletter content</span>
+<span class="sd">        journalist (ForeignKey): The author of the newsletter</span>
+<span class="sd">        publisher (ForeignKey): The publisher the newsletter belongs to</span>
+<span class="sd">        created_at (datetime): When the newsletter was created</span>
+<span class="sd">        updated_at (datetime): When the newsletter was last updated</span>
+
+<span class="sd">    Workflow:</span>
+<span class="sd">        1. Journalist creates newsletter</span>
+<span class="sd">        2. Newsletter is immediately available</span>
+<span class="sd">        3. Email notifications are sent to subscribers of the journalist</span>
+<span class="sd">           and publisher</span>
+
+<span class="sd">    Note:</span>
+<span class="sd">        Unlike articles, newsletters do not have approval/rejection status</span>
+<span class="sd">        and are immediately visible after creation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">title</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span>
+    <span class="n">content</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">()</span>
+    <span class="n">journalist</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span>
+        <span class="n">Journalist</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;newsletters&quot;</span>
+    <span class="p">)</span>
+    <span class="n">publisher</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span>
+        <span class="n">Publisher</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;newsletters&quot;</span>
+    <span class="p">)</span>
+    <span class="n">created_at</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">(</span><span class="n">auto_now_add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">updated_at</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">(</span><span class="n">auto_now</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">title</span></div>
+
+
+
+<div class="viewcode-block" id="JournalistSubscription">
+<a class="viewcode-back" href="../../news.html#news.forms.JournalistSubscription">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">JournalistSubscription</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Subscription relationship between readers and journalists.</span>
+
+<span class="sd">    Represents a reader&#39;s subscription to a specific journalist.</span>
+<span class="sd">    Subscriptions affect content filtering and email notifications for</span>
+<span class="sd">    articles and newsletters.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        reader (ForeignKey): The user with &#39;reader&#39; role who is</span>
+<span class="sd">            subscribing</span>
+<span class="sd">        journalist (ForeignKey): The journalist being subscribed to</span>
+<span class="sd">        subscribed_at (datetime): When the subscription was created</span>
+<span class="sd">        is_active (bool): Whether the subscription is currently active</span>
+
+<span class="sd">    Effects:</span>
+<span class="sd">        - Readers receive email notifications about new content</span>
+<span class="sd">        - API responses filter content based on subscriptions</span>
+<span class="sd">        - Web interface highlights subscription status</span>
+
+<span class="sd">    Note:</span>
+<span class="sd">        Subscriptions are automatically deactivated (not deleted) when a</span>
+<span class="sd">        reader&#39;s role changes to anything other than &#39;reader&#39;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">reader</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">AUTH_USER_MODEL</span><span class="p">,</span>
+        <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">,</span>
+        <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;journalist_subscriptions&quot;</span><span class="p">,</span>
+        <span class="n">limit_choices_to</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;reader&quot;</span><span class="p">},</span>
+    <span class="p">)</span>
+    <span class="n">journalist</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span>
+        <span class="n">Journalist</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;subscribers&quot;</span>
+    <span class="p">)</span>
+    <span class="n">subscribed_at</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">(</span><span class="n">auto_now_add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">is_active</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">BooleanField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">class</span><span class="w"> </span><span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">unique_together</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;reader&quot;</span><span class="p">,</span> <span class="s2">&quot;journalist&quot;</span><span class="p">)</span>
+        <span class="n">verbose_name</span> <span class="o">=</span> <span class="s2">&quot;Journalist Subscription&quot;</span>
+        <span class="n">verbose_name_plural</span> <span class="o">=</span> <span class="s2">&quot;Journalist Subscriptions&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">username</span><span class="si">}</span><span class="s2"> subscribed to </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">journalist</span><span class="si">}</span><span class="s2">&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="PublisherSubscription">
+<a class="viewcode-back" href="../../news.html#news.forms.PublisherSubscription">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PublisherSubscription</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Subscription relationship between readers and publishers.</span>
+
+<span class="sd">    Represents a reader&#39;s subscription to a specific publisher.</span>
+<span class="sd">    Subscribing to a publisher provides access to all content from that</span>
+<span class="sd">    publisher&#39;s journalists.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        reader (ForeignKey): The user with &#39;reader&#39; role who is</span>
+<span class="sd">            subscribing</span>
+<span class="sd">        publisher (ForeignKey): The publisher being subscribed to</span>
+<span class="sd">        subscribed_at (datetime): When the subscription was created</span>
+<span class="sd">        is_active (bool): Whether the subscription is currently active</span>
+
+<span class="sd">    Effects:</span>
+<span class="sd">        - Readers receive email notifications about new content</span>
+<span class="sd">        - API responses filter content based on subscriptions</span>
+<span class="sd">        - Web interface highlights subscription status</span>
+<span class="sd">        - Provides access to all content from the publisher&#39;s</span>
+<span class="sd">          journalists</span>
+
+<span class="sd">    Note:</span>
+<span class="sd">        Subscriptions are automatically deactivated (not deleted) when a</span>
+<span class="sd">        reader&#39;s role changes to anything other than &#39;reader&#39;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">reader</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">AUTH_USER_MODEL</span><span class="p">,</span>
+        <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">,</span>
+        <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;publisher_subscriptions&quot;</span><span class="p">,</span>
+        <span class="n">limit_choices_to</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;reader&quot;</span><span class="p">},</span>
+    <span class="p">)</span>
+    <span class="n">publisher</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span>
+        <span class="n">Publisher</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;subscribers&quot;</span>
+    <span class="p">)</span>
+    <span class="n">subscribed_at</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">(</span><span class="n">auto_now_add</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">is_active</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">BooleanField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">class</span><span class="w"> </span><span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">unique_together</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;reader&quot;</span><span class="p">,</span> <span class="s2">&quot;publisher&quot;</span><span class="p">)</span>
+        <span class="n">verbose_name</span> <span class="o">=</span> <span class="s2">&quot;Publisher Subscription&quot;</span>
+        <span class="n">verbose_name_plural</span> <span class="o">=</span> <span class="s2">&quot;Publisher Subscriptions&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">username</span><span class="si">}</span><span class="s2"> subscribed to </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">publisher</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="ResetToken">
+<a class="viewcode-back" href="../../news.html#news.forms.ResetToken">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ResetToken</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Secure token for password reset functionality.</span>
+
+<span class="sd">    Stores secure tokens for the password reset process with expiration</span>
+<span class="sd">    and one-time use functionality.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        user (ForeignKey): The user requesting password reset</span>
+<span class="sd">        token (str): Unique token string (stored as SHA-1 hash)</span>
+<span class="sd">        expiry_date (datetime): When the token expires</span>
+<span class="sd">        used (bool): Whether the token has been used</span>
+
+<span class="sd">    Workflow:</span>
+<span class="sd">        1. User requests password reset</span>
+<span class="sd">        2. System generates token and sends email with reset URL</span>
+<span class="sd">        3. User clicks URL and resets password</span>
+<span class="sd">        4. Token is marked as used to prevent reuse</span>
+
+<span class="sd">    Security features:</span>
+<span class="sd">        - Tokens are hashed before storage</span>
+<span class="sd">        - Tokens expire after a set time period</span>
+<span class="sd">        - Tokens can only be used once</span>
+<span class="sd">        - Invalid/expired tokens are rejected</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">user</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">AUTH_USER_MODEL</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span>
+    <span class="p">)</span>
+    <span class="n">token</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">255</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">expiry_date</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">()</span>
+    <span class="n">used</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">BooleanField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Reset token for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="si">}</span><span class="s2"> (used: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">used</span><span class="si">}</span><span class="s2">)&quot;</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Philip Bergh.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
