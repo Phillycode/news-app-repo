@@ -1,0 +1,26 @@
+# Bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.env
+venv/
+
+# Code editor
+.vscode/
+
+# Local databases
+*.db
+*.sqlite3
+
+# Logs and file-based emails
+*.log
+emails/
+
+# Sphinx documentation
+docs/
+
+# Git files and history
+.git
+.gitignore
