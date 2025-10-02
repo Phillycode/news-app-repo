@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}{{ newsletter.title }} - YourNews{% endblock %}
+{% block content %}
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h1 class="card-title">
+                {{ newsletter.title }}
+                <span class="badge bg-info ms-2">Newsletter</span>
+            </h1>
+            <p class="card-text text-muted mb-3">
+                By {{ newsletter.journalist.user.get_full_name|default:newsletter.journalist.user.username }} |
+                Publisher: {{ newsletter.publisher.name }}
+            </p>
+            {% if user.is_authenticated and user.role == "reader" %}
+                <div class="mb-3">
+                    {% if not is_subscribed_to_journalist %}
+                        <a href="{% url 'news:subscribe_journalist' newsletter.journalist.pk %}"
+                           class="btn btn-outline-primary btn-sm">
+                            Subscribe to {{ newsletter.journalist.user.get_full_name|default:newsletter.journalist.user.username }}
+                        </a>
+                    {% endif %}
+                    {% if not is_subscribed_to_publisher %}
+                        <a href="{% url 'news:subscribe_publisher' newsletter.publisher.pk %}"
+                           class="btn btn-outline-secondary btn-sm">Subscribe to {{ newsletter.publisher.name }}</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+            <div class="newsletter-content">
+                <p class="card-text">{{ newsletter.content|linebreaks }}</p>
+            </div>
+            {% if can_edit %}
+                <div class="mt-4">
+                    <div class="btn-group" role="group">
+                        <a href="{% url 'news:update_newsletter' newsletter.pk %}"
+                           class="btn btn-warning btn-sm">Edit</a>
+                        <a href="{% url 'news:delete_newsletter' newsletter.pk %}"
+                           class="btn btn-danger btn-sm">Delete</a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="mt-3">
+        <a href="{% url 'news:newsletter_list' %}" class="btn btn-secondary">Back to Newsletters</a>
+    </div>
+{% endblock %}

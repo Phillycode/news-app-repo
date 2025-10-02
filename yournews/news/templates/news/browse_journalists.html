@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Browse Journalists - YourNews{% endblock %}
+{% block content %}
+  <div class="row justify-content-center">
+    <div class="col-md-12">
+      <h2 class="mb-4">Browse Journalists</h2>
+      <div class="mb-3">
+        <a href="{% url 'news:my_subscriptions' %}"
+           class="btn btn-outline-primary">Back to My Subscriptions</a>
+        <a href="{% url 'news:browse_publishers' %}"
+           class="btn btn-outline-success">Browse Publishers</a>
+      </div>
+      {% if journalists %}
+        <div class="row">
+          {% for journalist in journalists %}
+            <div class="col-md-6 col-lg-4 mb-4">
+              <div class="card h-100 shadow-sm">
+                <div class="card-body d-flex flex-column">
+                  <h5 class="card-title">{{ journalist.user.get_full_name|default:journalist.user.username }}</h5>
+                  <p class="card-text text-muted mb-2">
+                    <strong>Publisher:</strong> {{ journalist.publisher.name }}
+                  </p>
+                  <p class="card-text mb-2">
+                    <span class="badge bg-primary">{{ journalist.article_count }} Articles</span>
+                    <span class="badge bg-info">{{ journalist.subscriber_count }} Subscribers</span>
+                  </p>
+                  <div class="mt-auto">
+                    {% if journalist.id in user_subscribed_journalists %}
+                      <div class="d-flex gap-2">
+                        <span class="btn btn-success btn-sm flex-fill disabled">✓ Subscribed</span>
+                        <a href="{% url 'news:unsubscribe_journalist' journalist.id %}"
+                           class="btn btn-outline-danger btn-sm">Unsubscribe</a>
+                      </div>
+                    {% else %}
+                      <a href="{% url 'news:subscribe_journalist' journalist.id %}"
+                         class="btn btn-primary btn-sm w-100">Subscribe</a>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="alert alert-info">No journalists found. Check back later for new content creators!</div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

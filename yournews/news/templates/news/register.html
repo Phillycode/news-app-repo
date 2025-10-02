@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+{% block title %}
+  Register -
+  YourNews
+{% endblock %}
+{% block content %}
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h3 class="card-title text-center mb-4">Create an Account</h3>
+          <form method="post" novalidate>
+            {% csrf_token %}
+            {% for field in form %}
+              <div class="mb-3">
+                {{ field.label_tag }} {{ field|add_class:"form-control" }}
+                {% if field.errors %}<div class="text-danger small">{{ field.errors|striptags }}</div>{% endif %}
+              </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary w-100">Register</button>
+          </form>
+          <p class="text-center mt-3">
+            Already have an account? <a href="{% url 'news:login' %}">Login</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,148 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>
+      {% block title %}YourNews{% endblock %}
+    </title>
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet" />
+    <!-- CSS -->
+    <link rel="stylesheet" href="{% static 'news/css/style.css' %}" />
+    <!-- Favicon -->
+    <link rel="icon"
+          href="{% static 'news/images/planet_icon.jpg' %}"
+          type="image/x-icon" />
+  </head>
+  <body class="bg-light">
+    <!-- Navbar setup -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-bg">
+      <div class="container-fluid">
+        <!-- Brand -->
+        <a class="navbar-brand nav-text" href="{% url 'news:article_list' %}">YourNews</a>
+        <!-- Toggle button for mobile -->
+        <button class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarNav"
+                aria-controls="navbarNav"
+                aria-expanded="false"
+                aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <!-- Navbar links -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <!-- Left side Newsletter link -->
+          <ul class="navbar-nav me-auto">
+            <li class="nav-item navbar-list-item">
+              <a class="nav-link" href="{% url 'news:newsletter_list' %}">Newsletters</a>
+            </li>
+          </ul>
+          <!-- Right side links -->
+          <ul class="navbar-nav ms-auto">
+            {% if user.is_authenticated %}
+              {% if user.role == "editor" %}
+                <li class="nav-item navbar-list-item">
+                  <a class="nav-link" href="{% url 'news:editor_dashboard' %}">Editor Dashboard</a>
+                </li>
+              {% elif user.role == "journalist" %}
+                <li class="nav-item navbar-list-item">
+                  <a class="nav-link" href="{% url 'news:journalist_dashboard' %}">Journalist Dashboard</a>
+                </li>
+                <li class="nav-item navbar-list-item">
+                  <a class="nav-link" href="{% url 'news:submit_article' %}">Submit Article</a>
+                </li>
+                <li class="nav-item dropdown navbar-list-item">
+                  <a class="nav-link dropdown-toggle"
+                     href="#"
+                     role="button"
+                     data-bs-toggle="dropdown"
+                     aria-expanded="false">Newsletters</a>
+                  <ul class="dropdown-menu">
+                    <li>
+                      <a class="dropdown-item blue-link"
+                         href="{% url 'news:newsletter_list' %}">All Newsletters</a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item blue-link"
+                         href="{% url 'news:create_newsletter' %}">Create Newsletter</a>
+                    </li>
+                  </ul>
+                </li>
+              {% elif user.role == "publisher" %}
+                <li class="nav-item navbar-list-item">
+                  <a class="nav-link" href="{% url 'news:publisher_dashboard' %}">Publisher Dashboard</a>
+                </li>
+              {% endif %}
+              <!-- Admins get an additional Dashboard -->
+              {% if user.is_staff %}
+                <li class="nav-item navbar-list-item">
+                  <a class="nav-link" href="{% url 'news:admin_dashboard' %}">Admin Dashboard</a>
+                </li>
+              {% endif %}
+              {% if user.role == "reader" %}
+                <li class="nav-item navbar-list-item">
+                  <a class="nav-link" href="{% url 'news:my_subscriptions' %}">My Subscriptions</a>
+                </li>
+                <li class="nav-item dropdown navbar-list-item">
+                  <a class="nav-link dropdown-toggle"
+                     href="#"
+                     role="button"
+                     data-bs-toggle="dropdown"
+                     aria-expanded="false">Browse</a>
+                  <ul class="dropdown-menu">
+                    <li>
+                      <a class="dropdown-item blue-link"
+                         href="{% url 'news:browse_journalists' %}">Journalists</a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item blue-link"
+                         href="{% url 'news:browse_publishers' %}">Publishers</a>
+                    </li>
+                  </ul>
+                </li>
+                <li class="nav-item navbar-list-item">
+                  <a class="nav-link" href="{% url 'news:apply_role' %}">Apply for Role</a>
+                </li>
+              {% endif %}
+              <li class="nav-item navbar-list-item">
+                <a class="nav-link" href="{% url 'news:logout' %}">Logout</a>
+              </li>
+            {% else %}
+              <li class="nav-item navbar-list-item">
+                <a class="nav-link" href="{% url 'news:login' %}">Login</a>
+              </li>
+              <li class="nav-item navbar-list-item">
+                <a class="nav-link" href="{% url 'news:register' %}">Register</a>
+              </li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <!-- Messages block -->
+    <div class="container mt-3">
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }} alert-dismissible fade show"
+               role="alert">
+            {{ message }}
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                    aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+    <div class="container mt-5">
+      {% block content %}{% endblock %}
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <footer>
+      <h3 class="footer-heading">Global news. Simplified.</h3>
+    </footer>
+  </body>
+</html>

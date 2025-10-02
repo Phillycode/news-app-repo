@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Browse Publishers - YourNews{% endblock %}
+{% block content %}
+  <div class="row justify-content-center">
+    <div class="col-md-12">
+      <h2 class="mb-4">Browse Publishers</h2>
+      <div class="mb-3">
+        <a href="{% url 'news:my_subscriptions' %}"
+           class="btn btn-outline-primary">Back to My Subscriptions</a>
+        <a href="{% url 'news:browse_journalists' %}"
+           class="btn btn-outline-info">Browse Journalists</a>
+      </div>
+      {% if publishers %}
+        <div class="row">
+          {% for publisher in publishers %}
+            <div class="col-md-6 col-lg-4 mb-4">
+              <div class="card h-100 shadow-sm">
+                <div class="card-body d-flex flex-column">
+                  <h5 class="card-title">{{ publisher.name }}</h5>
+                  <p class="card-text">{{ publisher.description|default:"No description available"|truncatewords:15 }}</p>
+                  <p class="card-text mb-2">
+                    <span class="badge bg-primary">{{ publisher.article_count }} Articles</span>
+                    <span class="badge bg-info">{{ publisher.subscriber_count }} Subscribers</span>
+                  </p>
+                  <div class="mt-auto">
+                    {% if publisher.id in user_subscribed_publishers %}
+                      <div class="d-flex gap-2">
+                        <span class="btn btn-success btn-sm flex-fill disabled">✓ Subscribed</span>
+                        <a href="{% url 'news:unsubscribe_publisher' publisher.id %}"
+                           class="btn btn-outline-danger btn-sm">Unsubscribe</a>
+                      </div>
+                    {% else %}
+                      <a href="{% url 'news:subscribe_publisher' publisher.id %}"
+                         class="btn btn-success btn-sm w-100">Subscribe</a>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="alert alert-info">No publishers found. Check back later for new publishers!</div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

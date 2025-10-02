@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Apply for a Role - YourNews{% endblock %}
+{% load widget_tweaks %}
+{% block content %}
+  <div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h3 class="card-title text-center mb-4">Apply for a Role</h3>
+          <p class="text-muted text-center mb-4">Choose the role you want to apply for and explain why.</p>
+          {% if has_subscriptions %}
+            <div class="alert alert-warning" role="alert">
+              <h6 class="alert-heading">
+                <i class="fas fa-exclamation-triangle"></i> Important: Your Subscriptions Will Be Lost
+              </h6>
+              <p class="mb-2">
+                You currently have <strong>{{ total_subscriptions }}</strong> active subscription{{ total_subscriptions|pluralize }}:
+              </p>
+              <ul class="mb-2">
+                {% if journalist_subscriptions_count > 0 %}
+                  <li>{{ journalist_subscriptions_count }} journalist subscription{{ journalist_subscriptions_count|pluralize }}</li>
+                {% endif %}
+                {% if publisher_subscriptions_count > 0 %}
+                  <li>{{ publisher_subscriptions_count }} publisher subscription{{ publisher_subscriptions_count|pluralize }}</li>
+                {% endif %}
+              </ul>
+              <p class="mb-2">
+                <strong>⚠️ If your role application is approved, all of your current subscriptions will be automatically deactivated.</strong>
+              </p>
+              <hr>
+              <p class="mb-0">
+                <strong>Alternatively:</strong> If you want to keep your subscriptions, consider <a href="{% url 'news:register' %}" class="alert-link" target="_blank">creating a new account</a> to apply for your new role with.
+              </p>
+            </div>
+          {% endif %}
+          <form method="post" id="roleApplicationForm">
+            {% csrf_token %}
+            <!-- Applied Role Field -->
+            <div class="mb-3">
+              {{ form.applied_role.label_tag }}
+              {{ form.applied_role|add_class:"form-control" }}
+              {% if form.applied_role.errors %}
+                <div class="text-danger small">{{ form.applied_role.errors|striptags }}</div>
+              {% endif %}
+            </div>
+            <!-- Motivation Field -->
+            <div class="mb-3">
+              {{ form.motivation.label_tag }}
+              {{ form.motivation|add_class:"form-control" }}
+              {% if form.motivation.errors %}<div class="text-danger small">{{ form.motivation.errors|striptags }}</div>{% endif %}
+            </div>
+            {% if has_subscriptions %}
+              <!-- Confirmation checkbox for users with subscriptions -->
+              <div class="mb-3 form-check">
+                <input type="checkbox"
+                       class="form-check-input"
+                       id="confirmSubscriptionLoss"
+                       required>
+                <label class="form-check-label" for="confirmSubscriptionLoss">
+                  <strong>I understand that my subscriptions will be deactivated if my application is approved.</strong>
+                </label>
+              </div>
+            {% endif %}
+            <!-- Submit and Cancel Buttons -->
+            <div class="row">
+              <div class="col-6">
+                <div class="d-grid">
+                  <a href="{% url 'news:article_list' %}" class="btn btn-secondary">Cancel</a>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="d-grid">
+                  <button type="submit"
+                          class="btn btn-primary"
+                          {% if has_subscriptions %}id="submitWithWarning"{% endif %}>Apply for Role</button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

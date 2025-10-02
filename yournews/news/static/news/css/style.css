@@ -1,0 +1,74 @@
+.auth-container {
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 25px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fafafa;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.auth-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.auth-container button {
+  width: 100%;
+  padding: 10px;
+  background: #0056b3;
+  color: white;
+  border: none;
+  border-radius: 5px;
+}
+
+.auth-container button:hover {
+  background: #003f80;
+}
+
+.navbar-bg {
+  background-image: url("../images/globe_banner.jpg");
+  background-size: cover;
+  /* Image covers entire navbar */
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.blue-link {
+  color: #0096fa !important
+    /* prioritise */
+}
+
+.blue-link:hover {
+  color: #85ceff !important
+    /* prioritise */
+}
+
+.navbar-list-item a {
+  text-decoration: none;
+  /* Remove underline */
+  color: #85ceff;
+  /* Light Blue Text base */
+  font-weight: 500;
+}
+
+.navbar-list-item:hover a {
+  color: #b6eaff;
+  /* Extra light blue on hover */
+}
+
+footer {
+  background-image: url("../images/globe_footer.jpg");
+  background-size: cover;
+  /* Image covers the entire footer */
+  background-position: center;
+  padding: 10px;
+  margin-top: 50px;
+  text-align: center;
+  /* center the text */
+}
+
+.footer-heading {
+  color: #85ceff;
+  /* light blue */
+}

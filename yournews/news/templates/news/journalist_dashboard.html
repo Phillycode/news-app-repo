@@ -1,0 +1,362 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Journalist Dashboard - YourNews{% endblock %}
+{% block content %}
+  <div class="row justify-content-center">
+    <div class="col-md-12">
+      <h2 class="mb-4">Journalist Dashboard</h2>
+      <!-- Summary Cards -->
+      <div class="row mb-4">
+        <div class="col-md-3">
+          <div class="card bg-primary text-white">
+            <div class="card-body">
+              <h5 class="card-title">Total Articles</h5>
+              <h2>{{ total_count }}</h2>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card bg-warning text-white">
+            <div class="card-body">
+              <h5 class="card-title">Pending Review</h5>
+              <h2>{{ pending_count }}</h2>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card bg-success text-white">
+            <div class="card-body">
+              <h5 class="card-title">Approved</h5>
+              <h2>{{ approved_count }}</h2>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card bg-danger text-white">
+            <div class="card-body">
+              <h5 class="card-title">Rejected</h5>
+              <h2>{{ rejected_count }}</h2>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Newsletter Summary Card -->
+      <div class="row mb-4">
+        <div class="col-md-6">
+          <div class="card bg-info text-white">
+            <div class="card-body">
+              <h5 class="card-title">My Newsletters</h5>
+              <h2>{{ newsletter_count }}</h2>
+              <p class="card-text">Published newsletters (no approval needed)</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card border-info">
+            <div class="card-body">
+              <h5 class="card-title">Newsletter Actions</h5>
+              <a href="{% url 'news:create_newsletter' %}" class="btn btn-info">Create Newsletter</a>
+              <a href="{% url 'news:newsletter_list' %}" class="btn btn-outline-info">View All Newsletters</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Action Buttons -->
+      <div class="mb-3">
+        <a href="{% url 'news:submit_article' %}" class="btn btn-primary">Submit New Article</a>
+      </div>
+      <!-- Articles Tabs -->
+      <ul class="nav nav-tabs" id="articleTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active"
+                  id="pending-tab"
+                  data-bs-toggle="tab"
+                  data-bs-target="#pending"
+                  type="button"
+                  role="tab"
+                  aria-controls="pending"
+                  aria-selected="true">Pending ({{ pending_count }})</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link"
+                  id="approved-tab"
+                  data-bs-toggle="tab"
+                  data-bs-target="#approved"
+                  type="button"
+                  role="tab"
+                  aria-controls="approved"
+                  aria-selected="false">Approved ({{ approved_count }})</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link"
+                  id="rejected-tab"
+                  data-bs-toggle="tab"
+                  data-bs-target="#rejected"
+                  type="button"
+                  role="tab"
+                  aria-controls="rejected"
+                  aria-selected="false">Rejected ({{ rejected_count }})</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link"
+                  id="all-tab"
+                  data-bs-toggle="tab"
+                  data-bs-target="#all"
+                  type="button"
+                  role="tab"
+                  aria-controls="all"
+                  aria-selected="false">All Articles ({{ total_count }})</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link"
+                  id="newsletters-tab"
+                  data-bs-toggle="tab"
+                  data-bs-target="#newsletters"
+                  type="button"
+                  role="tab"
+                  aria-controls="newsletters"
+                  aria-selected="false">Newsletters ({{ newsletter_count }})</button>
+        </li>
+      </ul>
+      <!-- Tab Content -->
+      <div class="tab-content" id="articleTabsContent">
+        <!-- Pending Articles Tab -->
+        <div class="tab-pane fade show active"
+             id="pending"
+             role="tabpanel"
+             aria-labelledby="pending-tab">
+          <div class="mt-3">
+            {% if pending_articles %}
+              <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                  <thead class="table-warning">
+                    <tr>
+                      <th>Title</th>
+                      <th>Created</th>
+                      <th>Publisher</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for article in pending_articles %}
+                      <tr>
+                        <td>{{ article.title }}</td>
+                        <td>{{ article.created_at|date:"M d, Y H:i" }}</td>
+                        <td>{{ article.publisher.name }}</td>
+                        <td>
+                          <div class="btn-group" role="group">
+                            <a href="{% url 'news:article_detail' article.pk %}"
+                               class="btn btn-info btn-sm">View</a>
+                            <a href="{% url 'news:update_article' article.pk %}"
+                               class="btn btn-warning btn-sm">Edit</a>
+                            <a href="{% url 'news:delete_article' article.pk %}"
+                               class="btn btn-danger btn-sm">Delete</a>
+                          </div>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              <div class="alert alert-info">No pending articles at the moment.</div>
+            {% endif %}
+          </div>
+        </div>
+        <!-- Approved Articles Tab -->
+        <div class="tab-pane fade"
+             id="approved"
+             role="tabpanel"
+             aria-labelledby="approved-tab">
+          <div class="mt-3">
+            {% if approved_articles %}
+              <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                  <thead class="table-success">
+                    <tr>
+                      <th>Title</th>
+                      <th>Created</th>
+                      <th>Published</th>
+                      <th>Publisher</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for article in approved_articles %}
+                      <tr>
+                        <td>{{ article.title }}</td>
+                        <td>{{ article.created_at|date:"M d, Y H:i" }}</td>
+                        <td>{{ article.updated_at|date:"M d, Y H:i" }}</td>
+                        <td>{{ article.publisher.name }}</td>
+                        <td>
+                          <div class="btn-group" role="group">
+                            <a href="{% url 'news:article_detail' article.pk %}"
+                               class="btn btn-info btn-sm">View</a>
+                            <a href="{% url 'news:update_article' article.pk %}"
+                               class="btn btn-warning btn-sm">Edit</a>
+                          </div>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              <div class="alert alert-info">No approved articles yet.</div>
+            {% endif %}
+          </div>
+        </div>
+        <!-- Rejected Articles Tab -->
+        <div class="tab-pane fade"
+             id="rejected"
+             role="tabpanel"
+             aria-labelledby="rejected-tab">
+          <div class="mt-3">
+            {% if rejected_articles %}
+              <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                  <thead class="table-danger">
+                    <tr>
+                      <th>Title</th>
+                      <th>Created</th>
+                      <th>Rejected</th>
+                      <th>Publisher</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for article in rejected_articles %}
+                      <tr>
+                        <td>{{ article.title }}</td>
+                        <td>{{ article.created_at|date:"M d, Y H:i" }}</td>
+                        <td>{{ article.updated_at|date:"M d, Y H:i" }}</td>
+                        <td>{{ article.publisher.name }}</td>
+                        <td>
+                          <div class="btn-group" role="group">
+                            <a href="{% url 'news:article_detail' article.pk %}"
+                               class="btn btn-info btn-sm">View</a>
+                            <a href="{% url 'news:update_article' article.pk %}"
+                               class="btn btn-warning btn-sm">Edit</a>
+                            <a href="{% url 'news:delete_article' article.pk %}"
+                               class="btn btn-danger btn-sm">Delete</a>
+                          </div>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              <div class="alert alert-info">No rejected articles.</div>
+            {% endif %}
+          </div>
+        </div>
+        <!-- All Articles Tab -->
+        <div class="tab-pane fade"
+             id="all"
+             role="tabpanel"
+             aria-labelledby="all-tab">
+          <div class="mt-3">
+            {% if articles %}
+              <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                  <thead class="table-dark">
+                    <tr>
+                      <th>Title</th>
+                      <th>Status</th>
+                      <th>Created</th>
+                      <th>Last Updated</th>
+                      <th>Publisher</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for article in articles %}
+                      <tr>
+                        <td>{{ article.title }}</td>
+                        <td>
+                          <span class="badge {% if article.status == 'approved' %}bg-success {% elif article.status == 'rejected' %}bg-danger {% else %}bg-warning{% endif %}">
+                            {{ article.status|capfirst }}
+                          </span>
+                        </td>
+                        <td>{{ article.created_at|date:"M d, Y H:i" }}</td>
+                        <td>{{ article.updated_at|date:"M d, Y H:i" }}</td>
+                        <td>{{ article.publisher.name }}</td>
+                        <td>
+                          <div class="btn-group" role="group">
+                            <a href="{% url 'news:article_detail' article.pk %}"
+                               class="btn btn-info btn-sm">View</a>
+                            <a href="{% url 'news:update_article' article.pk %}"
+                               class="btn btn-warning btn-sm">Edit</a>
+                            {% if article.status != 'approved' %}
+                              <a href="{% url 'news:delete_article' article.pk %}"
+                                 class="btn btn-danger btn-sm">Delete</a>
+                            {% endif %}
+                          </div>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              <div class="alert alert-info">
+                You haven't submitted any articles yet. <a href="{% url 'news:submit_article' %}">Submit your first article!</a>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        <!-- Newsletters Tab -->
+        <div class="tab-pane fade"
+             id="newsletters"
+             role="tabpanel"
+             aria-labelledby="newsletters-tab">
+          <div class="mt-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h4>My Newsletters</h4>
+              <a href="{% url 'news:create_newsletter' %}" class="btn btn-info">Create New Newsletter</a>
+            </div>
+            {% if newsletters %}
+              <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                  <thead class="table-info">
+                    <tr>
+                      <th>Title</th>
+                      <th>Created</th>
+                      <th>Publisher</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for newsletter in newsletters %}
+                      <tr>
+                        <td>{{ newsletter.title }}</td>
+                        <td>{{ newsletter.created_at|date:"M d, Y H:i" }}</td>
+                        <td>{{ newsletter.publisher.name }}</td>
+                        <td>
+                          <div class="btn-group" role="group">
+                            <a href="{% url 'news:newsletter_detail' newsletter.pk %}"
+                               class="btn btn-info btn-sm">View</a>
+                            <a href="{% url 'news:update_newsletter' newsletter.pk %}"
+                               class="btn btn-warning btn-sm">Edit</a>
+                            <a href="{% url 'news:delete_newsletter' newsletter.pk %}"
+                               class="btn btn-danger btn-sm">Delete</a>
+                          </div>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              <div class="alert alert-info">
+                You haven't created any newsletters yet.
+                <a href="{% url 'news:create_newsletter' %}">Create your first newsletter!</a>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

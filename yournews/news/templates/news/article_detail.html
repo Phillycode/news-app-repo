@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}{{ article.title }} - YourNews{% endblock %}
+{% block content %}
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h2 class="card-title">
+        {{ article.title }}
+        <span class="badge {% if article.status == 'approved' %}bg-success {% elif article.status == 'rejected' %}bg-danger {% else %}bg-warning{% endif %} ms-2">
+          {{ article.status|capfirst }}
+        </span>
+      </h2>
+      <p class="text-muted mb-2">
+        <strong>Author:</strong> {{ article.journalist.user.get_full_name|default:article.journalist.user.username }}
+        | <strong>Published:</strong> {{ article.created_at|date:"F j, Y" }}
+        | <strong>Publisher:</strong> {{ article.publisher.name|default:article.publisher.user.get_full_name|default:article.publisher.user.username }}
+        {% if article.updated_at != article.created_at %}
+          | <strong>Last Updated:</strong> {{ article.updated_at|date:"F j, Y H:i" }}
+        {% endif %}
+      </p>
+      <hr />
+      <p class="card-text">{{ article.content }}</p>
+    </div>
+  </div>
+  <!-- Action buttons -->
+  {% if user.is_authenticated %}
+    <div class="row">
+      <!-- Navigation Section -->
+      <div class="col-md-6 mb-3">
+        <div class="card">
+          <div class="card-header">
+            <h6 class="mb-0">Navigation</h6>
+          </div>
+          <div class="card-body">
+            <div class="btn-group" role="group">
+              <a href="{% url 'news:article_list' %}"
+                 class="btn btn-outline-secondary btn-sm">Back to Articles</a>
+              {% if user.role == "editor" %}
+                <a href="{% url 'news:editor_dashboard' %}"
+                   class="btn btn-outline-primary btn-sm">Back to Dashboard</a>
+              {% elif user.role == "journalist" %}
+                <a href="{% url 'news:journalist_dashboard' %}"
+                   class="btn btn-outline-primary btn-sm">Back to Dashboard</a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Article Actions Section -->
+      {% if user.role == "editor" and article.publisher == user.editor_profile.publisher %}
+        <div class="col-md-6 mb-3">
+          <div class="card">
+            <div class="card-header">
+              <h6 class="mb-0">Editor Actions</h6>
+            </div>
+            <div class="card-body">
+              <div class="btn-group" role="group">
+                <a href="{% url 'news:update_article' article.pk %}"
+                   class="btn btn-warning btn-sm">Edit</a>
+                {% if article.status == 'pending' %}
+                  <a href="{% url 'news:approve_article' article.pk %}"
+                     class="btn btn-success btn-sm">Approve</a>
+                  <a href="{% url 'news:reject_article' article.pk %}"
+                     class="btn btn-danger btn-sm">Reject</a>
+                {% elif article.status == 'approved' %}
+                  <a href="{% url 'news:reject_article' article.pk %}"
+                     class="btn btn-outline-danger btn-sm">Unpublish</a>
+                {% elif article.status == 'rejected' %}
+                  <a href="{% url 'news:approve_article' article.pk %}"
+                     class="btn btn-success btn-sm">Approve</a>
+                  <a href="{% url 'news:delete_article' article.pk %}"
+                     class="btn btn-danger btn-sm">Delete</a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% elif user.role == "journalist" and article.journalist == user.journalist_profile %}
+        <div class="col-md-6 mb-3">
+          <div class="card">
+            <div class="card-header">
+              <h6 class="mb-0">Article Actions</h6>
+            </div>
+            <div class="card-body">
+              <div class="btn-group" role="group">
+                <a href="{% url 'news:update_article' article.pk %}"
+                   class="btn btn-warning btn-sm">Edit</a>
+                {% if article.status != 'approved' %}
+                  <a href="{% url 'news:delete_article' article.pk %}"
+                     class="btn btn-danger btn-sm">Delete</a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% elif user.role == "reader" %}
+        <!-- Reader subscription options -->
+        <div class="col-md-6 mb-3">
+          <div class="card">
+            <div class="card-header">
+              <h6 class="mb-0">Follow This Content</h6>
+            </div>
+            <div class="card-body">
+              <div class="mb-2">
+                <strong>Journalist:</strong> {{ article.journalist.user.get_full_name|default:article.journalist.user.username }}
+                {% if is_subscribed_to_journalist %}
+                  <span class="badge bg-success ms-1">Subscribed</span>
+                  <a href="{% url 'news:unsubscribe_journalist' article.journalist.id %}"
+                     class="btn btn-outline-danger btn-sm ms-1">Unsubscribe</a>
+                {% else %}
+                  <a href="{% url 'news:subscribe_journalist' article.journalist.id %}"
+                     class="btn btn-primary btn-sm ms-1">Subscribe</a>
+                {% endif %}
+              </div>
+              <div>
+                <strong>Publisher:</strong> {{ article.publisher.name }}
+                {% if is_subscribed_to_publisher %}
+                  <span class="badge bg-success ms-1">Subscribed</span>
+                  <a href="{% url 'news:unsubscribe_publisher' article.publisher.id %}"
+                     class="btn btn-outline-danger btn-sm ms-1">Unsubscribe</a>
+                {% else %}
+                  <a href="{% url 'news:subscribe_publisher' article.publisher.id %}"
+                     class="btn btn-success btn-sm ms-1">Subscribe</a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  {% else %}
+    <!-- Non-authenticated users -->
+    <div class="mb-3">
+      <a href="{% url 'news:article_list' %}"
+         class="btn btn-outline-secondary">← Back to Articles</a>
+    </div>
+  {% endif %}
+{% endblock %}
