@@ -14,7 +14,7 @@ Roles are assigned by django admin users or superusers. All users who register o
 - Publishers: They have permissions to edit, view and delete articles/newsletters, but their webapp options are currently limited to only viewing. Their unique function is viewing their editors, journalists and other related stats such as subscriptions from their dashboard.
 - Admins can currently have any role as normal in addition to being an admin. This makes testing easier, but can be modified for production.
 
-## Quick Setup instructions for the web app
+## Setup instructions for the web app
 
 - Check that you are using the desired database settings in settings.py (default should be sqlite3 already for development purposes).
 - Create and activate a virtual environment (venv)
@@ -58,13 +58,19 @@ python manage.py runserver
 docker build -t yournews .
 ```
 
-- Run the container
+- Run the container in the background:
 
 ```bash
-docker run -d -p 8000:8000 yournews
+docker run -d -p 8000:8000 --name yournews_container yournews
 ```
 
-- Open up your browser at http://localhost:8000/
+- Apply Django database migrations inside the running container:
+
+```bash
+docker exec -it yournews_container python manage.py migrate
+```
+
+- Once migrations are complete, open up your browser at http://localhost:8000/
 
 Note: For this project, the ALLOWED_HOSTS setting in settings.py is configured as:
 
@@ -82,11 +88,6 @@ Emails are currently set up as file based for testing. They are sent following t
 - Readers are emailed articles (once approved) or newsletters (once submitted) if they are subscribed to the author (journalist) or corresponding publisher.
 - Journalists are notified when their articles are approved and sent or when newsletters are sent out to subscribers successfully.
 - Users request a password reset.
-
-Formatters used:
-
-- Python: Black
-- django-html: Djlint
 
 ## API and Testing
 
