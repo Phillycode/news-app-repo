@@ -14,9 +14,55 @@ Roles are assigned by django admin users or superusers. All users who register o
 - Publishers: They have permissions to edit, view and delete articles/newsletters, but their webapp options are currently limited to only viewing. Their unique function is viewing their editors, journalists and other related stats such as subscriptions from their dashboard.
 - Admins can currently have any role as normal in addition to being an admin. This makes testing easier, but can be modified for production.
 
-## Setup instructions for the web app
+## Run with Docker
 
-- Check that you are using the desired database settings in settings.py (default should be sqlite3 already for development purposes).
+- Ensure that docker is running
+- Build the docker image:
+
+```bash
+docker build -t yournews .
+```
+
+- Run the container in the background:
+
+```bash
+docker run -d -p 8000:8000 --name yournews_container yournews
+```
+
+- Apply Django database migrations inside the running container:
+
+```bash
+docker exec -it yournews_container python manage.py migrate
+```
+
+- **Optional but recommended** — Create a Django superuser to approve users' role applications from the Admin Dashboard in order to access the admin panel at `http://localhost:8000/admin/`
+
+```bash
+docker exec -it yournews_container python manage.py createsuperuser
+```
+
+- Follow the prompts to set a username, email and password.
+
+- Once that is done, you can run the app by opening up your browser at `http://localhost:8000/`
+- Feel free to test the app by creating users, applying for roles, and then approving them with the admin (superuser) account by navigating to the admin's dashboard.
+
+### Note
+
+When Django runs inside the container, it binds to `0.0.0.0:8000`, allowing it to accept connections from any network interface. However, from your host machine, you will need to access the site at `http://localhost:8000/`, since `0.0.0.0` is not accessible outside of the container.
+
+### Additional info
+
+For this project, the ALLOWED_HOSTS setting in settings.py is configured as:
+
+```python
+ALLOWED_HOSTS = ["*"]
+```
+
+This allows the application to run in any environment (including Docker Playground) without needing to change hostnames.
+
+## Run without Docker (local setup)
+
+- Check that you are using the desired database settings in settings.py (the default is already set as sqlite3 for development purposes).
 - Create and activate a virtual environment (venv)
 - Then install the dependencies from the included requirements.txt file. For my full requirements file (including dev tools), see requirements-dev.txt
 
@@ -44,41 +90,10 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-- Open your browser at http://127.0.0.1:8000
+- Open your browser at `http://127.0.0.1:8000`
 - You can now register users and apply for roles
 - With your admin/superuser, you can log into the news app and navigate to your Admin Dashboard from the Navbar.
 - Here you can approve user applications and select a Publisher for them in the case of an Editor or Journalist.
-
-## Run with Docker
-
-- Ensure that docker is running
-- Build the docker image
-
-```bash
-docker build -t yournews .
-```
-
-- Run the container in the background:
-
-```bash
-docker run -d -p 8000:8000 --name yournews_container yournews
-```
-
-- Apply Django database migrations inside the running container:
-
-```bash
-docker exec -it yournews_container python manage.py migrate
-```
-
-- Once migrations are complete, open up your browser at http://localhost:8000/
-
-Note: For this project, the ALLOWED_HOSTS setting in settings.py is configured as:
-
-```python
-ALLOWED_HOSTS = ["*"]
-```
-
-This allows the application to run in any environment (including Docker Playground) without needing to change hostnames.
 
 ## Emails
 
