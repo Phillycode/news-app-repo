@@ -35,13 +35,13 @@ docker run -d -p 8000:8000 --name yournews_container yournews
 docker exec -it yournews_container python manage.py migrate
 ```
 
-- **Optional but recommended** — Create a Django superuser to approve users' role applications from the Admin Dashboard in order to access the admin panel at `http://localhost:8000/admin/`
+- **Optional but recommended** — Create a Django superuser to manage role applications directly from the app’s Admin Dashboard via the navbar. While superusers can also access the Django admin panel at `http://localhost:8000/admin/`, all app functionality is available without using it.
 
 ```bash
 docker exec -it yournews_container python manage.py createsuperuser
 ```
 
-- Follow the prompts to set a username, email and password.
+- Follow the prompts to set a username, email, and password.
 
 - Once that is done, you can run the app by opening up your browser at `http://localhost:8000/`
 - Feel free to test the app by creating users, applying for roles, and then approving them with the admin (superuser) account by navigating to the admin's dashboard.
